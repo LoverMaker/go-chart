@@ -2,7 +2,6 @@ package chart
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"math"
 
