@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	util "github.com/wcharczuk/go-chart/util"
+	"strconv"
 )
 
 // BarChart is a chart that draws bars on a range.
@@ -116,7 +117,16 @@ func (bc BarChart) Render(rp RendererProvider, w io.Writer) error {
 	canvasBox = bc.getDefaultCanvasBox()
 	yr = bc.getRanges()
 	if yr.GetMax()-yr.GetMin() == 0 {
-		return fmt.Errorf("invalid data range; cannot be zero")
+		v := yr.GetMax()
+		if v > 0 {
+			yr.SetMin(0)
+		} else if  v < 0 {
+			yr.SetMax(0)
+		} else {
+			yr.SetMax(0.5)
+			yr.SetMin(0)
+		}
+		// return fmt.Errorf("invalid data range; cannot be zero")
 	}
 	yr = bc.setRangeDomains(canvasBox, yr)
 	yf = bc.getValueFormatters()
@@ -203,6 +213,11 @@ func (bc BarChart) drawBars(r Renderer, canvasBox Box, yr Range) {
 		}
 
 		Draw.Box(r, barBox, bar.Style.InheritFrom(bc.styleDefaultsBar(index)))
+		// draw value on bar
+		textStyle := bar.Style.InheritFrom(bc.styleDefaultsAxes())
+		textStyle.WriteToRenderer(r)
+		textStyle.GetTextOptions().WriteToRenderer(r)
+		Draw.Text(r, strconv.FormatFloat(bar.Value, 'g', 5, 32), (bxl + bxr) / 2 - DefaultFontSize / 2, by - 8, textStyle)
 
 		xoffset += width + spacing
 	}
